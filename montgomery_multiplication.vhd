@@ -57,14 +57,13 @@ begin
 					
 					iterator	<= iterator + 1;
 				elsif iterator = steps then
-					if unsigned(temp_result) >= unsigned(module) then
-						temp_result	<= std_logic_vector(unsigned(temp_result) - unsigned(module));
-					end if;
-					
-					iterator	<= iterator + 1;
-				elsif iterator = steps+1 then
-					result		<= temp_result(mod_len-1 downto 0);
 					flag		<= '1';
+					
+					if unsigned(temp_result) >= unsigned(module) then
+						result	<= std_logic_vector(unsigned(temp_result) - unsigned(module))(mod_len-1 downto 0);
+					else
+						result	<= temp_result(mod_len-1 downto 0);
+					end if;
 					
 					iterator	<= iterator + 1;
 				end if;
