@@ -36,7 +36,7 @@ architecture RSA_arch of RSA is
 			mode		: in std_logic_vector(3 downto 0); -- first bit: 1 - start, 0 - stop, second and third bits: 00 - no action, 01 - transform and multiply, 10 - multiply, 11 - multiply and reduce, fourth: bit 1 - reset, 0 - no action
 			clk			: in std_logic;
 			flag		: out std_logic;
-			output		: out std_logic_vector(mod_len-1 downto 0)
+			result		: out std_logic_vector(mod_len-1 downto 0)
 		);  
 	end component montgomery_multiplication;
 	
@@ -48,8 +48,10 @@ architecture RSA_arch of RSA is
 	signal key_exp		: std_logic_vector(mod_len-1 downto 0);
 	signal base			: std_logic_vector(mod_len-1 downto 0);
 	signal flag_mapped	: std_logic;
+	signal flag_reset	: std_logic;
 	signal mode_flag	: std_logic_vector(1 downto 0); -- 00 - do nothing, 01 - control, 10 - multiply, 11 - sqare
 	signal iterator		: unsigned(10 downto 0);
+	--signal iterator1	: unsigned(1 downto 0);
 	signal iterator2	: unsigned(10 downto 0);
 	signal steps		: unsigned(word_len-1 downto 0);
 	
@@ -159,34 +161,23 @@ begin
 				if key = key_exp then
 					if iterator2 = 0 then
 						mode_mapped	<= "1011";
+						if key_exp(0) = '0' then
+							temp_result	<= std_logic_vector(('1' & to_unsigned(0, mod_len)) - unsigned(module))(mod_len-1 downto 0);
+						end if;
 						
 						iterator2	<= iterator2 + 1;
 					elsif iterator2 = 1 then
 						mode_mapped	<= "1010";
-						key_exp		<= '0' & key_exp(mod_len-1 downto 1);
-
-						iterator2	<= iterator2 + 1;
-					end if;
-				elsif unsigned(key_exp) = 1 then
-					if iterator2 = 0 then
-						mode_mapped	<= "1111";
-						
-						iterator2	<= iterator2 + 1;
-					elsif iterator2 = 1 then
-						mode_mapped	<= "1110";
-						key_exp		<= '0' & key_exp(mod_len-1 downto 1);
 
 						iterator2	<= iterator2 + 1;
 					end if;
 				else
-					--mode_mapped	<= "1101";
 					if iterator2 = 0 then
 						mode_mapped	<= "1101";
 						
 						iterator2	<= iterator2 + 1;
 					elsif iterator2 = 1 then
 						mode_mapped	<= "1100";
-						key_exp		<= '0' & key_exp(mod_len-1 downto 1);
 
 						iterator2	<= iterator2 + 1;
 					end if;
@@ -194,16 +185,23 @@ begin
 			end if;
 			
 			if flag_mapped = '1' then
-				if mode_flag = "10" then
-					temp_result	<= result;
-					mode_flag	<= "11"; 
-				else
-					base		<= result;
-					mode_flag	<= "01";
+				if flag_reset = '0' then
+					if mode_flag = "10" then
+						temp_result	<= result;
+						mode_flag	<= "11";
+					else
+						base		<= result;
+						mode_flag	<= "01";
+						key_exp		<= '0' & key_exp(mod_len-1 downto 1);
+					end if;
+					
+					mode_mapped <= "0000";
+					iterator2	<= to_unsigned(0, 11);
+					
+					flag_reset	<= '1';
 				end if;
-				
-				mode_mapped <= "0000";
-				iterator2	<= to_unsigned(0, 11);
+			else
+				flag_reset	<= '0';
 			end if;
 		end if;
 	end process;
