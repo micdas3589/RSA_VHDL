@@ -55,9 +55,9 @@ architecture arch_fast_mod_exponentiation of fast_mod_exponentiation is
 	signal temp_result	: std_logic_vector(mod_len-1 downto 0);
 	signal init			: std_logic := '0';
 	signal transform	: std_logic := '0';
-	signal red_result	: std_logic := '0';
-	signal iterator		: unsigned(10 downto 0)	:= to_unsigned(0, 11);
-	signal iterator2	: unsigned(10 downto 0)	:= to_unsigned(0, 11);
+	signal red_result	: std_logic;
+	signal mult_flag	: std_logic;
+	signal iterator		: unsigned(10 downto 0);
 
 begin
 	multiplication : montgomery_multiplication
@@ -103,13 +103,16 @@ begin
 		
 			if mode = '1' and reset = '0' then
 				if init = '0' then
-					--residue		<= '1' & to_unsigned(0, mod_len);
 					base_mapped	<= base;
 					exponent	<= exp;
 					flag		<= '0';
 					reset1		<= '1';
+					reset2		<= '0';
 					mode1		<= '1';
 					mode2		<= '0';
+					mult_flag	<= '0';
+					red_result	<= '0';
+					iterator	<= to_unsigned(0, 11);
 					temp_result <= resid_sqr;
 					
 					init		<= '1';
@@ -129,27 +132,22 @@ begin
 						if exp = exponent then
 							reset1	<= '0';
 							reset2	<= '0';
-						elsif iterator = 0 then
+						elsif mult_flag = '0' then
 							temp_result	<= mult_result;
-							--reset1		<= '1';
 							
-							iterator	<= iterator + 1;
-						elsif iterator = 1 then
-							--reset1		<= '0';
-							
-							iterator	<= iterator + 1;
+							mult_flag	<= '1';
 						end if;
 					else
-						iterator		<= to_unsigned(0, 11);
+						mult_flag		<= '0';
 					end if;
 					
 					if flag2 = '1' then
-						if iterator2 = 0 then
+						if iterator = 0 then
 							exponent	<= '0' & exponent(mod_len-1 downto 1);
 							base_mapped	<= base_squared;
 							
-							iterator2 	<= iterator2 + 1;
-						elsif iterator2 = 1 then
+							iterator 	<= iterator + 1;
+						elsif iterator = 1 then
 							reset2		<= '1';
 							mode2		<= '1';
 							
@@ -160,15 +158,15 @@ begin
 								mode1 	<= '0';
 							end if;
 							
-							iterator2	<= iterator2 + 1;
-						elsif iterator2 = 2 then
+							iterator	<= iterator + 1;
+						elsif iterator = 2 then
 							reset1		<= '0';
 							reset2		<= '0';
 							
-							iterator2	<= iterator2 + 1;
+							iterator	<= iterator + 1;
 						end if;
 					else
-						iterator2		<= to_unsigned(0, 11);
+						iterator		<= to_unsigned(0, 11);
 					end if;
 				else
 					if flag1 = '1' and red_result = '0' then
