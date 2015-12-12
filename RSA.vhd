@@ -110,7 +110,7 @@ begin
 						result_returned <= result_mapped;
 						
 						iterator2 		<= iterator2 + 1;
-					elsif iterator2 < steps then
+					elsif iterator2 <= steps then
 						ciphertext		<= result_returned(in_out_len-1 downto 0);
 						result_returned	<= std_logic_vector(to_unsigned(0, in_out_len)) & result_returned(mod_len-1 downto in_out_len);
 						
