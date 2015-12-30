@@ -26,7 +26,7 @@ architecture arch_montgomery_multiplication of montgomery_multiplication is
 	signal iterator		: unsigned(10 downto 0);
 	signal u_mod_len	: unsigned(10 downto 0);
 	signal temp_result	: std_logic_vector(mod_len+word_len downto 0);
-	signal steps		: unsigned(word_len-1 downto 0);
+	signal steps		: unsigned(10 downto 0);
 	signal vec_v		: std_logic_vector(mod_len-1 downto 0);
 	signal vec_u		: std_logic_vector(mod_len-1 downto 0);
 begin
@@ -41,7 +41,7 @@ begin
 				temp_result	<= std_logic_vector(to_unsigned(0, mod_len+word_len+1));
 				vec_u		<= vec_x;
 				vec_v		<= vec_y;
-				steps		<= to_unsigned(mod_len/word_len, word_len);
+				steps		<= to_unsigned(mod_len/word_len, 11);
 				iterator	<= to_unsigned(0, 11);
 			end if;
 			
